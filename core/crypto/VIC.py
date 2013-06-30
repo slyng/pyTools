@@ -40,6 +40,7 @@ class VIC:
         self.chiave = chiave
         self.extra = self._get_extra(extra)
         self.scacchiera = {}
+        self.m = ( str(self.chiave.index(' ')), str(self.chiave.rindex(' ')) )
         self._genera_scacchiera()
         
     def _get_extra(self, s):
@@ -57,7 +58,6 @@ class VIC:
             e = e[:2]
         else:
             print "error non hai inserti sufficienti caratteri extra validi"
-        print e
         return e
     
     def _genera_scacchiera(self):
@@ -74,9 +74,8 @@ class VIC:
             for x in self.chiave:
                 if not x == ' ':
                     del s[s.index(x)]
-                    print x, s
-            self.scacchiera[str(self.chiave.index(' '))] = ''.join(s[:10])
-            self.scacchiera[str(self.chiave.rindex(' '))] = ''.join(s[-10:])
+            self.scacchiera[self.m[0]] = ''.join(s[:10])
+            self.scacchiera[self.m[1]] = ''.join(s[-10:])
         else:
             print "error problemi con la generazione di scacchiera"
             
@@ -95,6 +94,9 @@ class VIC:
         self._genera_scacchiera()
         
     def encript(self, s):
+        '''
+        creazione del messaggio cifrato
+        '''
         import string
         s = ''.join(s.lower().split(' '))
         for c in s:
@@ -110,9 +112,40 @@ class VIC:
                         msg += '%s%d' %(k, v.index(ch))
         return msg
                 
-
+    def decript(self, c):
+        '''
+        decriptazione del messaggio cifrato
+        '''
+        import re
+        pattern = '[\d%s]+$' %re.sub('-', '\-', self.extra)
+        if re.match( pattern, c ):
+            cl = []
+            cl.extend(c)
+            m = self._decode( cl )
+            return m
+        else:
+            print 'error: possono essere presenti solo numeri o uno dei ch extra'
+            return
+    
+    def _decode(self, code):
+        '''
+        decodifica pezzo per pezzo
+        metodo ricorsivo
+        '''
+        msg = ''
+        if len(code) > 0:
+            cur = code.pop(0)
+            if cur in self.m:
+                ch = self.scacchiera[cur][int(code.pop(0))]
+            else:
+                ch = self.scacchiera['0'][int(cur)]
+            msg += ch + self._decode(code)
+        return msg
+    
 if __name__ == "__main__":
     vic = VIC()
 #     vic.set_chiave('en uac bit')
 #     l = vic.scacchiera
-    print vic.encript('salve sono fabio')
+    msg = 'ciao-mondo'
+    
+    print vic.decript(vic.encript(msg))
